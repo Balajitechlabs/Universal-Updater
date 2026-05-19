@@ -61,7 +61,7 @@ export async function createBackup(): Promise<{
       "mas",
       "go",
     ] as EcosystemId[]
-  ).filter((id) => prefs[`enable${id.charAt(0).toUpperCase() + id.slice(1)}`]);
+  ).filter((id) => prefs[`enable${id.charAt(0).toUpperCase() + id.slice(1)}` as keyof Preferences]);
 
   const backup: Record<string, Record<string, string>> = {};
   let packageCount = 0;
