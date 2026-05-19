@@ -4,12 +4,16 @@ import {
   Color,
   Detail,
   Icon,
-  List,
+  Grid,
   openExtensionPreferences,
 } from "@raycast/api";
 import { useEffect, useState, useCallback } from "react";
 
 import { EcosystemId, isEcosystemAvailable } from "./ecosystems";
+
+function getEmojiIcon(emoji: string) {
+  return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-size="70">${emoji}</text></svg>`;
+}
 
 type ManagerInfo = {
   id: EcosystemId;
@@ -18,6 +22,7 @@ type ManagerInfo = {
   installed?: boolean;
   installCommand: string;
   description: string;
+  emoji: string;
 };
 
 const MANAGERS: ManagerInfo[] = [
@@ -28,6 +33,7 @@ const MANAGERS: ManagerInfo[] = [
     description: "The missing package manager for macOS",
     installCommand:
       '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"',
+    emoji: "🍺",
   },
   {
     id: "npm",
@@ -35,6 +41,7 @@ const MANAGERS: ManagerInfo[] = [
     website: "https://npmjs.com",
     description: "JavaScript package manager",
     installCommand: "brew install node",
+    emoji: "📦",
   },
   {
     id: "yarn",
@@ -42,6 +49,7 @@ const MANAGERS: ManagerInfo[] = [
     website: "https://yarnpkg.com",
     description: "Fast, reliable, and secure JavaScript package manager",
     installCommand: "brew install yarn",
+    emoji: "🧶",
   },
   {
     id: "pnpm",
@@ -49,6 +57,31 @@ const MANAGERS: ManagerInfo[] = [
     website: "https://pnpm.io",
     description: "Fast, disk space efficient package manager",
     installCommand: "npm install -g pnpm",
+    emoji: "⚡",
+  },
+  {
+    id: "bun",
+    name: "bun",
+    website: "https://bun.sh",
+    description: "Incredibly fast JavaScript runtime, bundler, test runner, and package manager",
+    installCommand: "curl -fsSL https://bun.sh/install | bash",
+    emoji: "🥟",
+  },
+  {
+    id: "deno",
+    name: "deno",
+    website: "https://deno.land",
+    description: "A modern runtime for JavaScript and TypeScript",
+    installCommand: "curl -fsSL https://deno.land/x/install/install.sh | sh",
+    emoji: "🦕",
+  },
+  {
+    id: "composer",
+    name: "composer",
+    website: "https://getcomposer.org",
+    description: "Dependency Manager for PHP",
+    installCommand: "brew install composer",
+    emoji: "🐘",
   },
   {
     id: "pip",
@@ -56,6 +89,7 @@ const MANAGERS: ManagerInfo[] = [
     website: "https://pip.pypa.io",
     description: "Python package installer",
     installCommand: "brew install python3",
+    emoji: "🐍",
   },
   {
     id: "pipx",
@@ -63,6 +97,7 @@ const MANAGERS: ManagerInfo[] = [
     website: "https://pipx.pypa.io",
     description: "Install and run Python applications in isolated environments",
     installCommand: "brew install pipx",
+    emoji: " изолирован", // Or just use a box, python logo etc, let's use 🎁
   },
   {
     id: "cargo",
@@ -70,6 +105,7 @@ const MANAGERS: ManagerInfo[] = [
     website: "https://doc.rust-lang.org/cargo",
     description: "Rust package manager",
     installCommand: "brew install rust",
+    emoji: "🦀",
   },
   {
     id: "gem",
@@ -77,6 +113,7 @@ const MANAGERS: ManagerInfo[] = [
     website: "https://rubygems.org",
     description: "Ruby package manager",
     installCommand: "brew install ruby",
+    emoji: "💎",
   },
   {
     id: "mas",
@@ -84,6 +121,7 @@ const MANAGERS: ManagerInfo[] = [
     website: "https://github.com/mas-cli/mas",
     description: "Mac App Store command line interface",
     installCommand: "brew install mas",
+    emoji: "🍏",
   },
   {
     id: "go",
@@ -91,8 +129,12 @@ const MANAGERS: ManagerInfo[] = [
     website: "https://golang.org",
     description: "Go programming language and tools",
     installCommand: "brew install go",
+    emoji: "🐹",
   },
 ];
+
+// Fix the pipx emoji string to be just an emoji
+MANAGERS.find((m) => m.id === "pipx")!.emoji = "🎁";
 
 async function detectManagers(): Promise<ManagerInfo[]> {
   return Promise.all(
@@ -103,10 +145,10 @@ async function detectManagers(): Promise<ManagerInfo[]> {
   );
 }
 
-function ManagerDetailView(props: { manager: ManagerInfo }) {
-  const { manager } = props;
+function ManagerDetailView(props: { manager: ManagerInfo; onBack: () => void }) {
+  const { manager, onBack } = props;
 
-  const markdown = `# ${manager.name}
+  const markdown = `# ${manager.emoji} ${manager.name}
 
 ${manager.description}
 
@@ -138,6 +180,12 @@ ${
             shortcut={{ modifiers: ["cmd"], key: "c" }}
           />
           <Action.OpenInBrowser title="Open Website" url={manager.website} />
+          <Action
+            title="Go Back"
+            icon={Icon.ArrowLeft}
+            shortcut={{ modifiers: ["cmd"], key: "b" }}
+            onAction={onBack}
+          />
         </ActionPanel>
       }
     />
@@ -166,36 +214,34 @@ export default function Command() {
   if (selectedId) {
     const selected = managers.find((m) => m.id === selectedId);
     if (selected) {
-      return <ManagerDetailView manager={selected} />;
+      return <ManagerDetailView manager={selected} onBack={() => setSelectedId(null)} />;
     }
   }
 
   return (
-    <List
+    <Grid
       isLoading={isLoading}
       navigationTitle="Detected Managers"
       searchBarPlaceholder="Search managers…"
+      itemSize={Grid.ItemSize.Medium}
     >
-      <List.Section
-        title={`Installed (${installed.length}/${managers.length})`}
+      <Grid.Section
+        title={`Installed Managers (${installed.length}/${managers.length})`}
         subtitle="Ready to use"
       >
         {installed.length === 0 ? (
-          <List.Item
+          <Grid.Item
+            content={getEmojiIcon("⚠️")}
             title="No managers detected"
             subtitle="Install one or more to get started"
-            icon={{ source: Icon.Warning, tintColor: Color.Orange }}
           />
         ) : (
           installed.map((m) => (
-            <List.Item
+            <Grid.Item
               key={m.id}
+              content={getEmojiIcon(m.emoji)}
               title={m.name}
-              subtitle={m.description}
-              icon={{ source: Icon.CheckCircle, tintColor: Color.Green }}
-              accessories={[
-                { tag: { value: "Installed", color: Color.Green } },
-              ]}
+              subtitle="✅ Installed"
               actions={
                 <ActionPanel>
                   <Action
@@ -209,27 +255,25 @@ export default function Command() {
                     shortcut={{ modifiers: ["cmd"], key: "r" }}
                     onAction={() => void refresh()}
                   />
+                  <Action.OpenInBrowser title="Open Website" url={m.website} />
                 </ActionPanel>
               }
             />
           ))
         )}
-      </List.Section>
+      </Grid.Section>
 
       {notInstalled.length > 0 && (
-        <List.Section
+        <Grid.Section
           title={`Not Installed (${notInstalled.length})`}
           subtitle="Click to view installation instructions"
         >
           {notInstalled.map((m) => (
-            <List.Item
+            <Grid.Item
               key={m.id}
+              content={getEmojiIcon(m.emoji)}
               title={m.name}
-              subtitle={m.description}
-              icon={{ source: Icon.Download, tintColor: Color.Red }}
-              accessories={[
-                { tag: { value: "Not installed", color: Color.Red } },
-              ]}
+              subtitle="❌ Not Installed"
               actions={
                 <ActionPanel>
                   <Action
@@ -253,25 +297,8 @@ export default function Command() {
               }
             />
           ))}
-        </List.Section>
+        </Grid.Section>
       )}
-
-      <List.Section title="Info">
-        <List.Item
-          title="Universal Updater"
-          subtitle="Manage all your package managers from one place"
-          icon={Icon.Info}
-          actions={
-            <ActionPanel>
-              <Action
-                title="Open Preferences"
-                icon={Icon.Gear}
-                onAction={openExtensionPreferences}
-              />
-            </ActionPanel>
-          }
-        />
-      </List.Section>
-    </List>
+    </Grid>
   );
 }

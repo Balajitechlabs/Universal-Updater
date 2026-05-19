@@ -14,6 +14,8 @@ import {
   showHUD,
   showToast,
   LocalStorage,
+  AI,
+  environment,
 } from "@raycast/api";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { execFileSync } from "node:child_process";
@@ -308,6 +310,44 @@ export async function removeIgnoredPackage(name: string) {
   await LocalStorage.setItem("ignoredPackages", JSON.stringify(updated));
 }
 
+// --- AI Summary View ---
+function AISummaryView(props: { pkg: OutdatedPackage; managerName: string }) {
+  const { pkg, managerName } = props;
+  const [summary, setSummary] = useState<string>("Asking Raycast AI...");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    async function fetchSummary() {
+      if (!environment.canAccess(AI)) {
+        if (active) {
+          setSummary("Raycast Pro is required to use AI features.");
+          setIsLoading(false);
+        }
+        return;
+      }
+      try {
+        const prompt = `I am upgrading the ${managerName} package "${pkg.name}" from version ${pkg.current} to ${pkg.latest}. What are the major breaking changes, important new features, or security fixes I should be aware of? Keep it to a few concise bullet points.`;
+        const result = await AI.ask(prompt);
+        if (active) {
+          setSummary(result);
+          setIsLoading(false);
+        }
+      } catch (error: any) {
+        if (active) {
+          setSummary(`Failed to get AI summary: ${error.message}`);
+          setIsLoading(false);
+        }
+      }
+    }
+    void fetchSummary();
+    return () => { active = false; };
+  }, [pkg, managerName]);
+
+  return <Detail markdown={`# 🤖 AI Upgrade Summary\n\n**Package:** ${pkg.name} (${pkg.current} ➡️ ${pkg.latest})\n\n---\n\n${summary}`} isLoading={isLoading} />;
+}
+
+// --- Status loading ---
 async function loadStatuses(defs: EcosystemDef[]): Promise<EcosystemStatus[]> {
   const ignored = await getIgnoredPackages();
   return Promise.all(
@@ -500,29 +540,43 @@ function PackageListView(
   return (
     <List navigationTitle={`Updates for ${props.status.name}`}>
       <List.Section title="Outdated Packages">
-        {displayPackages.map((pkg) => (
-          <List.Item
-            key={pkg.name}
-            title={pkg.name}
-            subtitle={props.showUpdateDetails ? `${pkg.current} -> ${pkg.latest}` : undefined}
-            accessories={pkg.changelog ? [{ icon: Icon.Book, tooltip: pkg.changelog }] : []}
-            actions={
-              <ActionPanel>
-                {pkg.website && <Action.OpenInBrowser title="Open Website" url={pkg.website} />}
-                {pkg.changelog && <Action.OpenInBrowser title="Open Changelog" url={pkg.changelog} />}
-                <Action
-                  title="Ignore Package"
-                  icon={Icon.EyeDisabled}
-                  onAction={async () => {
-                    await addIgnoredPackage(pkg.name);
-                    await showToast({ style: Toast.Style.Success, title: `Ignored ${pkg.name}` });
-                    props.onRefresh();
-                  }}
-                />
-              </ActionPanel>
-            }
-          />
-        ))}
+        {displayPackages.map((pkg) => {
+          const isMajor = pkg.current.split('.')[0] !== pkg.latest.split('.')[0];
+          return (
+            <List.Item
+              key={pkg.name}
+              title={pkg.name}
+              subtitle={props.showUpdateDetails ? `${pkg.current} -> ${pkg.latest}` : undefined}
+              accessories={[
+                isMajor ? { tag: { value: "🚨 Major", color: Color.Red } } : { tag: { value: "⚠️ Minor", color: Color.Yellow } },
+                pkg.changelog ? { icon: Icon.Book, tooltip: pkg.changelog } : {},
+              ]}
+              actions={
+                <ActionPanel>
+                  {environment.canAccess(AI) && (
+                    <Action.Push
+                      title="Summarize with AI"
+                      icon={Icon.Stars}
+                      target={<AISummaryView pkg={pkg} managerName={props.status.name} />}
+                      shortcut={{ modifiers: ["cmd"], key: "s" }}
+                    />
+                  )}
+                  {pkg.website && <Action.OpenInBrowser title="Open Website" url={pkg.website} />}
+                  {pkg.changelog && <Action.OpenInBrowser title="Open Changelog" url={pkg.changelog} />}
+                  <Action
+                    title="Ignore Package"
+                    icon={Icon.EyeDisabled}
+                    onAction={async () => {
+                      await addIgnoredPackage(pkg.name);
+                      await showToast({ style: Toast.Style.Success, title: `Ignored ${pkg.name}` });
+                      props.onRefresh();
+                    }}
+                  />
+                </ActionPanel>
+              }
+            />
+          );
+        })}
       </List.Section>
     </List>
   );
@@ -1253,35 +1307,12 @@ export default function Command() {
       isShowingDetail={isShowingDetail}
     >
       {hasEnabledManagers && (
-        <List.Section
-          title="Detected Managers"
-          subtitle={`${availability.size} total`}
-        >
+        <List.Section title="System Health">
           <List.Item
-            title={`Available: ${Array.from(availability.values()).filter((v) => v).length}`}
-            subtitle={`Not available: ${Array.from(availability.values()).filter((v) => !v).length}`}
-            icon={Icon.BarChart}
-            accessories={[
-              {
-                tag: {
-                  value: `${totalPackages} outdated`,
-                  color: totalPackages > 0 ? Color.Orange : Color.Green,
-                },
-              },
-            ]}
-            actions={
-              <ActionPanel>
-                <Action
-                  title="View Available Managers"
-                  icon={Icon.Download}
-                  onAction={async () => {
-                    await showHUD(
-                      "Use Detect Installed Managers to review installed CLI tools",
-                    );
-                  }}
-                />
-              </ActionPanel>
-            }
+            title={`Health Score: ${totalOutdated === 0 && Array.from(availability.values()).filter(v => !v).length === 0 ? "100% (A+) 🟢" : totalOutdated < 5 ? "85% (B) 🔵" : "60% (C) 🟡"}`}
+            subtitle={totalOutdated === 0 ? "Your system is perfectly up to date!" : `You have ${totalOutdated} outdated packages.`}
+            icon={{ source: Icon.Heartbeat, tintColor: totalOutdated === 0 ? Color.Green : Color.Yellow }}
+            accessories={[{ text: "Run 'Free Up Space' to reclaim disk space", icon: Icon.Stars }]}
           />
         </List.Section>
       )}
