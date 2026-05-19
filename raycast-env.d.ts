@@ -50,14 +50,10 @@ type ExtensionPreferences = {
   "autoRefreshInterval": "never" | "5" | "15" | "30" | "60",
   /** Notifications - Display system notifications when updates are available */
   "notificationsEnabled": boolean,
-  /** Automation - Silently upgrade trusted packages in the background */
-  "autoUpgradeTrusted": boolean,
   /** Safety - Create a backup list of current versions before upgrading */
   "backupBeforeUpgrade": boolean,
   /** undefined - Avoid upgrading to new major versions (e.g., 2.x → 3.x) to prevent breaking changes */
   "skipMajorVersions": boolean,
-  /** Logging - Control the verbosity of upgrade logs */
-  "logLevel": "silent" | "error" | "warn" | "info" | "debug",
   /** Display - Reduce spacing and show more items on screen */
   "compactMode": boolean,
   /** undefined - Display when the last update check was performed */
