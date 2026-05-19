@@ -60,6 +60,9 @@ export async function createBackup(): Promise<{
       "gem",
       "mas",
       "go",
+      "bun",
+      "deno",
+      "composer",
     ] as EcosystemId[]
   ).filter(
     (id) =>
