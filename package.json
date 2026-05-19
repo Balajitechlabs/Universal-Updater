@@ -56,7 +56,7 @@
     },
     {
       "name": "free-up-space",
-      "title": "Free Up Space",
+      "title": "Free up Space",
       "subtitle": "Universal Updater",
       "description": "Run cleanup commands for all enabled package managers to reclaim disk space.",
       "mode": "view"

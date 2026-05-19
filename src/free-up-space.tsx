@@ -10,7 +10,11 @@ import {
   openExtensionPreferences,
 } from "@raycast/api";
 import { useEffect, useState, useMemo } from "react";
-import { EcosystemId, cleanupEcosystem, isEcosystemAvailable } from "./ecosystems";
+import {
+  EcosystemId,
+  cleanupEcosystem,
+  isEcosystemAvailable,
+} from "./ecosystems";
 
 const ECOSYSTEM_NAMES: Record<EcosystemId, string> = {
   brew: "Homebrew",
@@ -67,19 +71,34 @@ export default function Command() {
   }, [enabledEcosystems]);
 
   async function runCleanup(id: EcosystemId) {
-    setEcosystems((prev) => prev.map((e) => (e.id === id ? { ...e, status: "running" } : e)));
+    setEcosystems((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, status: "running" } : e)),
+    );
     try {
       const result = await cleanupEcosystem(id);
-      setEcosystems((prev) => prev.map((e) => (e.id === id ? { ...e, status: "success", message: result } : e)));
+      setEcosystems((prev) =>
+        prev.map((e) =>
+          e.id === id ? { ...e, status: "success", message: result } : e,
+        ),
+      );
     } catch (err: any) {
-      setEcosystems((prev) => prev.map((e) => (e.id === id ? { ...e, status: "error", message: err?.message } : e)));
+      setEcosystems((prev) =>
+        prev.map((e) =>
+          e.id === id ? { ...e, status: "error", message: err?.message } : e,
+        ),
+      );
     }
   }
 
   async function runAllCleanups() {
     setIsRunningAll(true);
-    const toast = await showToast({ style: Toast.Style.Animated, title: "Cleaning up caches..." });
-    const tasks = ecosystems.filter((e) => e.status !== "unsupported").map((e) => runCleanup(e.id));
+    const toast = await showToast({
+      style: Toast.Style.Animated,
+      title: "Cleaning up caches...",
+    });
+    const tasks = ecosystems
+      .filter((e) => e.status !== "unsupported")
+      .map((e) => runCleanup(e.id));
     await Promise.all(tasks);
     toast.style = Toast.Style.Success;
     toast.title = "Cleanup Complete";
@@ -104,23 +123,40 @@ export default function Command() {
   if (enabledEcosystems.length === 0) {
     return (
       <List>
-        <List.EmptyView title="No ecosystems enabled" description="Please enable some ecosystems in preferences." actions={
-          <ActionPanel>
-            <Action title="Open Preferences" onAction={openExtensionPreferences} />
-          </ActionPanel>
-        } />
+        <List.EmptyView
+          title="No ecosystems enabled"
+          description="Please enable some ecosystems in preferences."
+          actions={
+            <ActionPanel>
+              <Action
+                title="Open Preferences"
+                onAction={openExtensionPreferences}
+              />
+            </ActionPanel>
+          }
+        />
       </List>
     );
   }
 
   return (
-    <List isLoading={isRunningAll} searchBarPlaceholder="Search ecosystems to clean up...">
+    <List
+      isLoading={isRunningAll}
+      searchBarPlaceholder="Search ecosystems to clean up..."
+    >
       <List.Section title="Cleanup Caches">
         {ecosystems.map((eco) => (
           <List.Item
             key={eco.id}
             title={eco.name}
-            subtitle={eco.status === "unsupported" ? "No cleanup command available" : eco.status === "running" ? "Cleaning..." : eco.message || (eco.status === "idle" ? "Ready to clean" : "")}
+            subtitle={
+              eco.status === "unsupported"
+                ? "No cleanup command available"
+                : eco.status === "running"
+                  ? "Cleaning..."
+                  : eco.message ||
+                    (eco.status === "idle" ? "Ready to clean" : "")
+            }
             icon={getIcon(eco.status)}
             actions={
               <ActionPanel>
@@ -139,7 +175,12 @@ export default function Command() {
                     />
                   </>
                 )}
-                <Action title="Open Preferences" icon={Icon.Gear} shortcut={{ modifiers: ["cmd"], key: "," }} onAction={openExtensionPreferences} />
+                <Action
+                  title="Open Preferences"
+                  icon={Icon.Gear}
+                  shortcut={{ modifiers: ["cmd"], key: "," }}
+                  onAction={openExtensionPreferences}
+                />
               </ActionPanel>
             }
           />

@@ -1,12 +1,4 @@
-import {
-  Action,
-  ActionPanel,
-  Color,
-  Detail,
-  Icon,
-  Grid,
-  openExtensionPreferences,
-} from "@raycast/api";
+import { Action, ActionPanel, Detail, Icon, Grid } from "@raycast/api";
 import { useEffect, useState, useCallback } from "react";
 
 import { EcosystemId, isEcosystemAvailable } from "./ecosystems";
@@ -63,7 +55,8 @@ const MANAGERS: ManagerInfo[] = [
     id: "bun",
     name: "bun",
     website: "https://bun.sh",
-    description: "Incredibly fast JavaScript runtime, bundler, test runner, and package manager",
+    description:
+      "Incredibly fast JavaScript runtime, bundler, test runner, and package manager",
     installCommand: "curl -fsSL https://bun.sh/install | bash",
     emoji: "🥟",
   },
@@ -145,7 +138,10 @@ async function detectManagers(): Promise<ManagerInfo[]> {
   );
 }
 
-function ManagerDetailView(props: { manager: ManagerInfo; onBack: () => void }) {
+function ManagerDetailView(props: {
+  manager: ManagerInfo;
+  onBack: () => void;
+}) {
   const { manager, onBack } = props;
 
   const markdown = `# ${manager.emoji} ${manager.name}
@@ -214,7 +210,12 @@ export default function Command() {
   if (selectedId) {
     const selected = managers.find((m) => m.id === selectedId);
     if (selected) {
-      return <ManagerDetailView manager={selected} onBack={() => setSelectedId(null)} />;
+      return (
+        <ManagerDetailView
+          manager={selected}
+          onBack={() => setSelectedId(null)}
+        />
+      );
     }
   }
 

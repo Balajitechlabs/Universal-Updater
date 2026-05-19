@@ -67,26 +67,40 @@ export default function Command() {
       setIsLoading(true);
       try {
         let items: SearchResult[] = [];
-        
+
         // Live search only implemented for some, otherwise fallback to exact input
-        if (ecosystem === "npm" || ecosystem === "yarn" || ecosystem === "pnpm" || ecosystem === "bun") {
-          const res = await fetch(`https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(searchText)}&size=20`);
-          const json = await res.json() as any;
+        if (
+          ecosystem === "npm" ||
+          ecosystem === "yarn" ||
+          ecosystem === "pnpm" ||
+          ecosystem === "bun"
+        ) {
+          const res = await fetch(
+            `https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(searchText)}&size=20`,
+          );
+          const json = (await res.json()) as any;
           items = json.objects.map((obj: any) => ({
             name: obj.package.name,
             description: obj.package.description,
             version: obj.package.version,
           }));
         } else if (ecosystem === "composer") {
-          const res = await fetch(`https://packagist.org/search.json?q=${encodeURIComponent(searchText)}&per_page=15`);
-          const json = await res.json() as any;
+          const res = await fetch(
+            `https://packagist.org/search.json?q=${encodeURIComponent(searchText)}&per_page=15`,
+          );
+          const json = (await res.json()) as any;
           items = json.results.map((r: any) => ({
             name: r.name,
             description: r.description,
           }));
         } else {
           // Fallback for others, just show the exact text as an option
-          items = [{ name: searchText.trim(), description: `Install ${searchText} via ${ECOSYSTEM_NAMES[ecosystem]}` }];
+          items = [
+            {
+              name: searchText.trim(),
+              description: `Install ${searchText} via ${ECOSYSTEM_NAMES[ecosystem]}`,
+            },
+          ];
         }
 
         if (active) {
@@ -94,7 +108,13 @@ export default function Command() {
         }
       } catch (e) {
         if (active) {
-          setResults([{ name: searchText.trim(), description: "Search failed, but you can still try installing this exact name." }]);
+          setResults([
+            {
+              name: searchText.trim(),
+              description:
+                "Search failed, but you can still try installing this exact name.",
+            },
+          ]);
         }
       } finally {
         if (active) setIsLoading(false);
@@ -144,7 +164,10 @@ export default function Command() {
   if (enabledEcosystems.length === 0) {
     return (
       <List>
-        <List.EmptyView title="No ecosystems enabled" description="Please enable at least one in the extension preferences." />
+        <List.EmptyView
+          title="No ecosystems enabled"
+          description="Please enable at least one in the extension preferences."
+        />
       </List>
     );
   }
@@ -166,7 +189,11 @@ export default function Command() {
           }}
         >
           {enabledEcosystems.map((id) => (
-            <List.Dropdown.Item key={id} value={id} title={ECOSYSTEM_NAMES[id]} />
+            <List.Dropdown.Item
+              key={id}
+              value={id}
+              title={ECOSYSTEM_NAMES[id]}
+            />
           ))}
         </List.Dropdown>
       }
@@ -182,7 +209,7 @@ export default function Command() {
             actions={
               <ActionPanel>
                 <Action
-                  title={`Install via ${ECOSYSTEM_NAMES[ecosystem]}`}
+                  title="Install Package"
                   icon={Icon.Download}
                   onAction={() => void handleInstall(pkg.name)}
                 />
@@ -191,7 +218,7 @@ export default function Command() {
           />
         ))}
       </List.Section>
-      
+
       {results.length === 0 && searchText.trim() === "" && (
         <List.EmptyView
           icon={Icon.MagnifyingGlass}

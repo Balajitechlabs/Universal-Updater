@@ -890,22 +890,37 @@ export async function uninstallPackage(
       return run(
         `rm $(deno info --json | grep -o '"install": "[^"]*"' | cut -d '"' -f 4)/bin/${nameArg} || true`,
       );
-    case "composer": return run(`composer global remove ${nameArg}`);
-    default: throw new Error(`Uninstall not supported for: ${ecosystem}`);
+    case "composer":
+      return run(`composer global remove ${nameArg}`);
+    default:
+      throw new Error(`Uninstall not supported for: ${ecosystem}`);
   }
 }
 
-export async function cleanupEcosystem(ecosystem: EcosystemId): Promise<string> {
+export async function cleanupEcosystem(
+  ecosystem: EcosystemId,
+): Promise<string> {
   switch (ecosystem) {
-    case "brew": return run("brew cleanup");
-    case "npm": return run("npm cache clean --force");
-    case "yarn": return run("yarn cache clean");
-    case "pnpm": return run("pnpm store prune");
-    case "pip": { const pipCmd = await resolvePipCmd(); return run(`${pipCmd} cache purge`); }
-    case "gem": return run("gem cleanup");
-    case "go": return run("go clean -modcache");
-    case "bun": return run("bun pm cache rm");
-    case "composer": return run("composer clear-cache");
+    case "brew":
+      return run("brew cleanup");
+    case "npm":
+      return run("npm cache clean --force");
+    case "yarn":
+      return run("yarn cache clean");
+    case "pnpm":
+      return run("pnpm store prune");
+    case "pip": {
+      const pipCmd = await resolvePipCmd();
+      return run(`${pipCmd} cache purge`);
+    }
+    case "gem":
+      return run("gem cleanup");
+    case "go":
+      return run("go clean -modcache");
+    case "bun":
+      return run("bun pm cache rm");
+    case "composer":
+      return run("composer clear-cache");
     case "cargo":
     case "pipx":
     case "deno":

@@ -341,10 +341,17 @@ function AISummaryView(props: { pkg: OutdatedPackage; managerName: string }) {
       }
     }
     void fetchSummary();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [pkg, managerName]);
 
-  return <Detail markdown={`# 🤖 AI Upgrade Summary\n\n**Package:** ${pkg.name} (${pkg.current} ➡️ ${pkg.latest})\n\n---\n\n${summary}`} isLoading={isLoading} />;
+  return (
+    <Detail
+      markdown={`# 🤖 AI Upgrade Summary\n\n**Package:** ${pkg.name} (${pkg.current} ➡️ ${pkg.latest})\n\n---\n\n${summary}`}
+      isLoading={isLoading}
+    />
+  );
 }
 
 // --- Status loading ---
@@ -354,8 +361,15 @@ async function loadStatuses(defs: EcosystemDef[]): Promise<EcosystemStatus[]> {
     defs.map(async (def) => {
       try {
         const packages = await def.checker();
-        const filteredPackages = packages.filter((p) => !ignored.includes(p.name));
-        return { id: def.id, name: def.name, enabled: true, packages: filteredPackages };
+        const filteredPackages = packages.filter(
+          (p) => !ignored.includes(p.name),
+        );
+        return {
+          id: def.id,
+          name: def.name,
+          enabled: true,
+          packages: filteredPackages,
+        };
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         return {
@@ -541,15 +555,24 @@ function PackageListView(
     <List navigationTitle={`Updates for ${props.status.name}`}>
       <List.Section title="Outdated Packages">
         {displayPackages.map((pkg) => {
-          const isMajor = pkg.current.split('.')[0] !== pkg.latest.split('.')[0];
+          const isMajor =
+            pkg.current.split(".")[0] !== pkg.latest.split(".")[0];
           return (
             <List.Item
               key={pkg.name}
               title={pkg.name}
-              subtitle={props.showUpdateDetails ? `${pkg.current} -> ${pkg.latest}` : undefined}
+              subtitle={
+                props.showUpdateDetails
+                  ? `${pkg.current} -> ${pkg.latest}`
+                  : undefined
+              }
               accessories={[
-                isMajor ? { tag: { value: "🚨 Major", color: Color.Red } } : { tag: { value: "⚠️ Minor", color: Color.Yellow } },
-                pkg.changelog ? { icon: Icon.Book, tooltip: pkg.changelog } : {},
+                isMajor
+                  ? { tag: { value: "🚨 Major", color: Color.Red } }
+                  : { tag: { value: "⚠️ Minor", color: Color.Yellow } },
+                pkg.changelog
+                  ? { icon: Icon.Book, tooltip: pkg.changelog }
+                  : {},
               ]}
               actions={
                 <ActionPanel>
@@ -557,18 +580,36 @@ function PackageListView(
                     <Action.Push
                       title="Summarize with AI"
                       icon={Icon.Stars}
-                      target={<AISummaryView pkg={pkg} managerName={props.status.name} />}
+                      target={
+                        <AISummaryView
+                          pkg={pkg}
+                          managerName={props.status.name}
+                        />
+                      }
                       shortcut={{ modifiers: ["cmd"], key: "s" }}
                     />
                   )}
-                  {pkg.website && <Action.OpenInBrowser title="Open Website" url={pkg.website} />}
-                  {pkg.changelog && <Action.OpenInBrowser title="Open Changelog" url={pkg.changelog} />}
+                  {pkg.website && (
+                    <Action.OpenInBrowser
+                      title="Open Website"
+                      url={pkg.website}
+                    />
+                  )}
+                  {pkg.changelog && (
+                    <Action.OpenInBrowser
+                      title="Open Changelog"
+                      url={pkg.changelog}
+                    />
+                  )}
                   <Action
                     title="Ignore Package"
                     icon={Icon.EyeDisabled}
                     onAction={async () => {
                       await addIgnoredPackage(pkg.name);
-                      await showToast({ style: Toast.Style.Success, title: `Ignored ${pkg.name}` });
+                      await showToast({
+                        style: Toast.Style.Success,
+                        title: `Ignored ${pkg.name}`,
+                      });
                       props.onRefresh();
                     }}
                   />
@@ -1309,10 +1350,22 @@ export default function Command() {
       {hasEnabledManagers && (
         <List.Section title="System Health">
           <List.Item
-            title={`Health Score: ${totalOutdated === 0 && Array.from(availability.values()).filter(v => !v).length === 0 ? "100% (A+) 🟢" : totalOutdated < 5 ? "85% (B) 🔵" : "60% (C) 🟡"}`}
-            subtitle={totalOutdated === 0 ? "Your system is perfectly up to date!" : `You have ${totalOutdated} outdated packages.`}
-            icon={{ source: Icon.Heartbeat, tintColor: totalOutdated === 0 ? Color.Green : Color.Yellow }}
-            accessories={[{ text: "Run 'Free Up Space' to reclaim disk space", icon: Icon.Stars }]}
+            title={`Health Score: ${totalOutdated === 0 && Array.from(availability.values()).filter((v) => !v).length === 0 ? "100% (A+) 🟢" : totalOutdated < 5 ? "85% (B) 🔵" : "60% (C) 🟡"}`}
+            subtitle={
+              totalOutdated === 0
+                ? "Your system is perfectly up to date!"
+                : `You have ${totalOutdated} outdated packages.`
+            }
+            icon={{
+              source: Icon.Heartbeat,
+              tintColor: totalOutdated === 0 ? Color.Green : Color.Yellow,
+            }}
+            accessories={[
+              {
+                text: "Run 'Free Up Space' to reclaim disk space",
+                icon: Icon.Stars,
+              },
+            ]}
           />
         </List.Section>
       )}
