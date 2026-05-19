@@ -10,11 +10,13 @@ Portfolio: https://portfolio.balajitechlab.com
 
 ## Screenshots
 
-<img src="metadata/universal-updater-1.jpg" width="800" alt="Universal Updater Commands">
-<img src="metadata/universal-updater-2.jpg" width="800" alt="Check for Updates">
-<img src="metadata/universal-updater-3.jpg" width="800" alt="Detected Managers">
-<img src="metadata/universal-updater-4.jpg" width="800" alt="Version Backups">
-<img src="metadata/universal-updater-5.jpg" width="800" alt="Search Packages">
+<img src="metadata/universal-updater-1.png" width="800" alt="Universal Updater Screenshot 1">
+<img src="metadata/universal-updater-2.png" width="800" alt="Universal Updater Screenshot 2">
+<img src="metadata/universal-updater-3.png" width="800" alt="Universal Updater Screenshot 3">
+<img src="metadata/universal-updater-4.png" width="800" alt="Universal Updater Screenshot 4">
+<img src="metadata/universal-updater-5.png" width="800" alt="Universal Updater Screenshot 5">
+<img src="metadata/universal-updater-6.png" width="800" alt="Universal Updater Screenshot 6">
+<img src="metadata/universal-updater-7.png" width="800" alt="Universal Updater Screenshot 7">
 
 ## Highlights
 
@@ -121,6 +123,3 @@ Copyright (c) 2026 BalajiTechLabs
 
 See [LICENSE](LICENSE) for the full text.
 
-# raycast-universal-updater
-
-# raycast-universal-updater
