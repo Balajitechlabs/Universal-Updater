@@ -78,6 +78,10 @@ declare namespace Preferences {
   export type SearchPackages = ExtensionPreferences & {}
   /** Preferences accessible in the `free-up-space` command */
   export type FreeUpSpace = ExtensionPreferences & {}
+  /** Preferences accessible in the `system-health` command */
+  export type SystemHealth = ExtensionPreferences & {}
+  /** Preferences accessible in the `security-audit` command */
+  export type SecurityAudit = ExtensionPreferences & {}
 }
 
 declare namespace Arguments {
@@ -95,5 +99,9 @@ declare namespace Arguments {
   export type SearchPackages = {}
   /** Arguments passed to the `free-up-space` command */
   export type FreeUpSpace = {}
+  /** Arguments passed to the `system-health` command */
+  export type SystemHealth = {}
+  /** Arguments passed to the `security-audit` command */
+  export type SecurityAudit = {}
 }
 
